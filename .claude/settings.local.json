@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"C:\\\\Users\\\\Administrator\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -c \":*)",
+      "Bash(PYTHONUTF8=1 \"C:\\\\Users\\\\Administrator\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -c \":*)",
+      "Bash(npx next:*)"
+    ]
+  }
+}

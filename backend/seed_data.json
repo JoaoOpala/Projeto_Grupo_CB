@@ -1,0 +1,175 @@
+{
+  "admins": [
+    {
+      "nome": "Admin Dev",
+      "email": "admin@marketplace.cb",
+      "senha": "admin123",
+      "role": "SUPER_ADMIN"
+    }
+  ],
+  "vendedores": [
+    {
+      "nome": "Vendedor Teste",
+      "email": "vendedor@teste.com",
+      "senha": "vendedor123",
+      "cpf_cnpj": "123.456.789-00",
+      "tipo_pessoa": "FISICA",
+      "comissao_padrao": 0.10,
+      "loja": {
+        "nome_loja": "Loja Teste",
+        "slug": "loja-teste",
+        "descricao": "Loja de testes do marketplace"
+      }
+    },
+    {
+      "nome": "Maria Silva Vendas",
+      "email": "maria@vendas.com",
+      "senha": "vendedor456",
+      "cpf_cnpj": "987.654.321-00",
+      "telefone": "(11) 98765-4321",
+      "tipo_pessoa": "FISICA",
+      "comissao_padrao": 0.12,
+      "loja": {
+        "nome_loja": "Tech & Moda Store",
+        "slug": "tech-moda-store",
+        "descricao": "Os melhores produtos de tecnologia e moda em um só lugar"
+      }
+    }
+  ],
+  "fornecedores": [
+    {
+      "key": "forn1",
+      "razao_social": "Fornecedor Teste LTDA",
+      "nome_fantasia": "Fornecedor Teste",
+      "cnpj": "12.345.678/0001-90",
+      "email": "fornecedor@teste.com",
+      "senha": "fornecedor123",
+      "tipo": "INDUSTRIA",
+      "condicao_comercial": {
+        "margem_minima": 0.15,
+        "prazo_entrega_dias": 5,
+        "politica_devolucao": "Devolução em até 7 dias após recebimento."
+      }
+    },
+    {
+      "key": "forn2",
+      "razao_social": "MegaDistribuidora S.A.",
+      "nome_fantasia": "MegaDist",
+      "cnpj": "98.765.432/0001-10",
+      "email": "contato@megadist.com",
+      "senha": "fornecedor456",
+      "telefone": "(21) 3333-4444",
+      "tipo": "DISTRIBUIDOR",
+      "condicao_comercial": {
+        "margem_minima": 0.20,
+        "prazo_entrega_dias": 3,
+        "politica_devolucao": "Devolução em até 15 dias. Frete por conta do comprador."
+      }
+    }
+  ],
+  "categorias": [
+    { "key": "elet", "nome": "Eletrônicos",       "slug": "eletronicos",   "descricao": "Produtos eletrônicos em geral" },
+    { "key": "vest", "nome": "Vestuário",          "slug": "vestuario",     "descricao": "Roupas e acessórios" },
+    { "key": "casa", "nome": "Casa e Decoração",   "slug": "casa-decoracao","descricao": "Itens para casa, cozinha e decoração" }
+  ],
+  "produtos": [
+    {
+      "key": "p1", "fornecedor": "forn1", "categoria": "elet",
+      "sku": "ELET-001", "nome": "Fone de Ouvido Bluetooth",
+      "descricao": "Fone de ouvido sem fio com cancelamento de ruído, bateria de 20h.",
+      "preco_base": 45.00, "preco_venda_sugerido": 89.90,
+      "estoque_disponivel": 150, "peso_kg": 0.25,
+      "atributos": { "cor": "Preto", "conectividade": "Bluetooth 5.0" }
+    },
+    {
+      "key": "p2", "fornecedor": "forn1", "categoria": "elet",
+      "sku": "ELET-002", "nome": "Carregador Portátil 10000mAh",
+      "descricao": "Power bank compacto com 2 saídas USB e carregamento rápido.",
+      "preco_base": 30.00, "preco_venda_sugerido": 59.90,
+      "estoque_disponivel": 200, "peso_kg": 0.22,
+      "atributos": { "capacidade": "10000mAh", "cor": "Branco" }
+    },
+    {
+      "key": "p3", "fornecedor": "forn1", "categoria": "elet",
+      "sku": "ELET-003", "nome": "Smartwatch Esportivo",
+      "descricao": "Relógio inteligente com monitor cardíaco, GPS e resistência à água.",
+      "preco_base": 75.00, "preco_venda_sugerido": 149.90,
+      "estoque_disponivel": 80, "peso_kg": 0.05,
+      "atributos": { "cor": "Preto", "tela": "1.4 polegadas" }
+    },
+    {
+      "key": "p4", "fornecedor": "forn1", "categoria": "vest",
+      "sku": "VEST-001", "nome": "Camiseta Básica Algodão",
+      "descricao": "Camiseta 100% algodão, corte regular, diversas cores disponíveis.",
+      "preco_base": 15.00, "preco_venda_sugerido": 39.90,
+      "estoque_disponivel": 500, "peso_kg": 0.18,
+      "atributos": { "material": "Algodão", "tamanho": "M" }
+    },
+    {
+      "key": "p5", "fornecedor": "forn1", "categoria": "vest",
+      "sku": "VEST-002", "nome": "Jaqueta Corta-Vento",
+      "descricao": "Jaqueta leve impermeável, ideal para atividades ao ar livre.",
+      "preco_base": 50.00, "preco_venda_sugerido": 119.90,
+      "estoque_disponivel": 120, "peso_kg": 0.35,
+      "atributos": { "material": "Poliéster", "tamanho": "G" }
+    },
+    {
+      "key": "p6", "fornecedor": "forn1", "categoria": "elet",
+      "sku": "ELET-004", "nome": "Caixa de Som Bluetooth",
+      "descricao": "Caixa de som portátil à prova d'água com 12h de bateria.",
+      "preco_base": 40.00, "preco_venda_sugerido": 79.90,
+      "estoque_disponivel": 100, "peso_kg": 0.45,
+      "atributos": { "potência": "20W", "cor": "Azul" }
+    },
+    {
+      "key": "p7", "fornecedor": "forn2", "categoria": "elet",
+      "sku": "MEGA-001", "nome": "Teclado Mecânico RGB",
+      "descricao": "Teclado mecânico com switches blue, iluminação RGB e layout ABNT2.",
+      "preco_base": 60.00, "preco_venda_sugerido": 129.90,
+      "estoque_disponivel": 90, "peso_kg": 0.85,
+      "atributos": { "layout": "ABNT2", "switches": "Blue" }
+    },
+    {
+      "key": "p8", "fornecedor": "forn2", "categoria": "elet",
+      "sku": "MEGA-002", "nome": "Mouse Gamer 12000 DPI",
+      "descricao": "Mouse gamer ergonômico com sensor óptico de alta precisão.",
+      "preco_base": 25.00, "preco_venda_sugerido": 69.90,
+      "estoque_disponivel": 200, "peso_kg": 0.12,
+      "atributos": { "dpi": "12000", "botões": "6" }
+    },
+    {
+      "key": "p9", "fornecedor": "forn2", "categoria": "casa",
+      "sku": "MEGA-003", "nome": "Luminária de Mesa LED",
+      "descricao": "Luminária articulada com 3 níveis de brilho e temperatura de cor ajustável.",
+      "preco_base": 35.00, "preco_venda_sugerido": 74.90,
+      "estoque_disponivel": 60, "peso_kg": 0.65,
+      "atributos": { "potência": "10W", "cor": "Branco" }
+    },
+    {
+      "key": "p10", "fornecedor": "forn2", "categoria": "casa",
+      "sku": "MEGA-004", "nome": "Organizador de Escritório",
+      "descricao": "Organizador multiuso em bambu para mesa de trabalho.",
+      "preco_base": 20.00, "preco_venda_sugerido": 49.90,
+      "estoque_disponivel": 150, "peso_kg": 0.40,
+      "atributos": { "material": "Bambu", "compartimentos": "5" }
+    }
+  ],
+  "produtos_loja": [
+    { "produto": "p1", "loja_index": 0, "preco_venda": 89.90,  "destaque": true  },
+    { "produto": "p2", "loja_index": 0, "preco_venda": 59.90,  "destaque": false },
+    { "produto": "p3", "loja_index": 0, "preco_venda": 149.90, "destaque": true  },
+    { "produto": "p4", "loja_index": 0, "preco_venda": 39.90,  "destaque": false },
+    { "produto": "p5", "loja_index": 0, "preco_venda": 119.90, "destaque": false },
+    { "produto": "p6", "loja_index": 0, "preco_venda": 79.90,  "destaque": false },
+    { "produto": "p7", "loja_index": 0, "preco_venda": 129.90, "destaque": true  },
+    { "produto": "p8", "loja_index": 0, "preco_venda": 69.90,  "destaque": false },
+
+    { "produto": "p1", "loja_index": 1, "preco_venda": 94.90,  "destaque": true  },
+    { "produto": "p3", "loja_index": 1, "preco_venda": 159.90, "destaque": true  },
+    { "produto": "p5", "loja_index": 1, "preco_venda": 129.90, "destaque": false },
+    { "produto": "p7", "loja_index": 1, "preco_venda": 139.90, "destaque": true  },
+    { "produto": "p8", "loja_index": 1, "preco_venda": 74.90,  "destaque": false },
+    { "produto": "p9", "loja_index": 1, "preco_venda": 74.90,  "destaque": false },
+    { "produto": "p10","loja_index": 1, "preco_venda": 49.90,  "destaque": false }
+  ]
+}
