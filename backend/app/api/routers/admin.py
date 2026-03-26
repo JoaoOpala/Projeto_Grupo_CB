@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.api.deps import require_role
+from app.api.schemas.cliente import ClienteResponse
 from app.api.schemas.fornecedor import FornecedorCreate, FornecedorResponse
 from app.api.schemas.pedido import PedidoResponse
 from app.api.schemas.produto import ProdutoResponse
@@ -19,9 +20,12 @@ from app.domain.admin.use_cases.aprovar_fornecedor import AprovarFornecedorUseCa
 from app.domain.admin.use_cases.moderar_produto import ModerarProdutoUseCase
 from app.domain.fornecedor.use_cases.criar_fornecedor import CriarFornecedorUseCase
 from app.domain.vendedor.use_cases.criar_vendedor import CriarVendedorUseCase
+from app.infrastructure.database.models.cliente import ClienteModel, StatusCliente
+from app.infrastructure.database.models.vendedor import LojaModel
 from app.infrastructure.database.models.fornecedor import FornecedorModel
-from app.infrastructure.database.models.produto import StatusProduto
+from app.infrastructure.database.models.produto import ProdutoModel, StatusProduto
 from app.infrastructure.database.models.vendedor import VendedorModel, StatusVendedor
+from app.infrastructure.database.repositories.cliente_repo import ClienteRepository
 from app.infrastructure.database.repositories.fornecedor_repo import FornecedorRepository
 from app.infrastructure.database.repositories.pedido_repo import PedidoRepository
 from app.infrastructure.database.repositories.produto_repo import ProdutoRepository
@@ -40,11 +44,13 @@ async def dashboard_admin(db: AsyncSession = Depends(get_db)):
     fornecedor_repo = FornecedorRepository(db)
     produto_repo = ProdutoRepository(db)
     pedido_repo = PedidoRepository(db)
+    cliente_repo = ClienteRepository(db)
 
     _, total_vendedores = await vendedor_repo.list_all(limit=0)
     _, total_fornecedores = await fornecedor_repo.list_all(limit=0)
     _, total_produtos = await produto_repo.list_ativos(limit=0)
     _, total_pedidos = await pedido_repo.list_all(limit=0)
+    _, total_clientes = await cliente_repo.list_all(limit=0)
     _, pendentes = await fornecedor_repo.list_by_status("PENDENTE", limit=0)
     _, moderacao = await produto_repo.list_by_status(StatusProduto.MODERACAO, limit=0)
 
@@ -53,6 +59,7 @@ async def dashboard_admin(db: AsyncSession = Depends(get_db)):
         "total_fornecedores": total_fornecedores,
         "total_produtos_ativos": total_produtos,
         "total_pedidos": total_pedidos,
+        "total_clientes": total_clientes,
         "fornecedores_pendentes": pendentes,
         "produtos_em_moderacao": moderacao,
     }
@@ -235,10 +242,20 @@ async def rejeitar_fornecedor(fornecedor_id: UUID, db: AsyncSession = Depends(ge
 async def listar_produtos_admin(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    status_filter: str | None = Query(None, alias="status"),
     db: AsyncSession = Depends(get_db),
 ):
     repo = ProdutoRepository(db)
-    items, total = await repo.list_ativos(offset=(page - 1) * page_size, limit=page_size)
+    if status_filter:
+        try:
+            status_enum = StatusProduto(status_filter.upper())
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Status inválido")
+        items, total = await repo.list_by_status(
+            status_enum, offset=(page - 1) * page_size, limit=page_size
+        )
+    else:
+        items, total = await repo.list_ativos(offset=(page - 1) * page_size, limit=page_size)
     return {
         "items": [ProdutoResponse.model_validate(i) for i in items],
         "total": total,
@@ -285,6 +302,159 @@ async def rejeitar_produto(produto_id: UUID, db: AsyncSession = Depends(get_db))
         return await use_case.execute(produto_id, aprovar=False)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.put("/produtos/{produto_id}/status")
+async def atualizar_status_produto(
+    produto_id: UUID,
+    novo_status: StatusProduto = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin altera o status de qualquer produto."""
+    stmt = select(ProdutoModel).where(ProdutoModel.id == produto_id)
+    result = await db.execute(stmt)
+    model = result.scalar_one_or_none()
+    if not model:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    model.status = novo_status
+    await db.commit()
+    return {"produto_id": str(produto_id), "status": novo_status}
+
+
+@router.delete("/produtos/{produto_id}", status_code=204)
+async def excluir_produto(produto_id: UUID, db: AsyncSession = Depends(get_db)):
+    """Admin exclui um produto da plataforma."""
+    stmt = select(ProdutoModel).where(ProdutoModel.id == produto_id)
+    result = await db.execute(stmt)
+    model = result.scalar_one_or_none()
+    if not model:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    await db.delete(model)
+    await db.commit()
+
+
+# ── Clientes ─────────────────────────────────────────────
+
+
+@router.get("/clientes")
+async def listar_clientes(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    repo = ClienteRepository(db)
+    items, total = await repo.list_all(offset=(page - 1) * page_size, limit=page_size)
+    return {
+        "items": [ClienteResponse.model_validate(i) for i in items],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+    }
+
+
+@router.get("/clientes/{cliente_id}", response_model=ClienteResponse)
+async def get_cliente(cliente_id: UUID, db: AsyncSession = Depends(get_db)):
+    repo = ClienteRepository(db)
+    cliente = await repo.get_by_id(cliente_id)
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    return ClienteResponse.model_validate(cliente)
+
+
+@router.put("/clientes/{cliente_id}/status")
+async def atualizar_status_cliente(
+    cliente_id: UUID,
+    novo_status: StatusCliente = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = select(ClienteModel).where(ClienteModel.id == cliente_id)
+    result = await db.execute(stmt)
+    model = result.scalar_one_or_none()
+    if not model:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    model.status = novo_status
+    await db.commit()
+    return {"cliente_id": str(cliente_id), "status": novo_status}
+
+
+@router.delete("/clientes/{cliente_id}", status_code=204)
+async def excluir_cliente(cliente_id: UUID, db: AsyncSession = Depends(get_db)):
+    stmt = select(ClienteModel).where(ClienteModel.id == cliente_id)
+    result = await db.execute(stmt)
+    model = result.scalar_one_or_none()
+    if not model:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    await db.delete(model)
+    await db.commit()
+
+
+# ── Lojas / Influences ───────────────────────────────────
+
+
+@router.get("/lojas")
+async def listar_lojas_admin(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    """Lista todas as lojas com status de verificação."""
+    from sqlalchemy import func
+    count_result = await db.execute(select(func.count()).select_from(LojaModel))
+    total = count_result.scalar_one()
+
+    stmt = (
+        select(LojaModel)
+        .order_by(LojaModel.verificado.desc(), LojaModel.nome_loja)
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    result = await db.execute(stmt)
+    lojas = result.scalars().all()
+    return {
+        "items": [
+            {
+                "id": str(l.id),
+                "nome_loja": l.nome_loja,
+                "slug": l.slug,
+                "descricao": l.descricao,
+                "logo_url": l.logo_url,
+                "ativa": l.ativa,
+                "verificado": l.verificado,
+            }
+            for l in lojas
+        ],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": max(1, (total + page_size - 1) // page_size),
+    }
+
+
+@router.put("/lojas/{loja_id}/verificar")
+async def verificar_loja(loja_id: str, db: AsyncSession = Depends(get_db)):
+    """Marca uma loja como influence verificado."""
+    stmt = select(LojaModel).where(LojaModel.id == loja_id)
+    result = await db.execute(stmt)
+    loja = result.scalar_one_or_none()
+    if not loja:
+        raise HTTPException(status_code=404, detail="Loja não encontrada")
+    loja.verificado = True
+    await db.commit()
+    return {"loja_id": loja_id, "verificado": True}
+
+
+@router.put("/lojas/{loja_id}/desverificar")
+async def desverificar_loja(loja_id: str, db: AsyncSession = Depends(get_db)):
+    """Remove a verificação de uma loja."""
+    stmt = select(LojaModel).where(LojaModel.id == loja_id)
+    result = await db.execute(stmt)
+    loja = result.scalar_one_or_none()
+    if not loja:
+        raise HTTPException(status_code=404, detail="Loja não encontrada")
+    loja.verificado = False
+    await db.commit()
+    return {"loja_id": loja_id, "verificado": False}
 
 
 # ── Pedidos ──────────────────────────────────────────────

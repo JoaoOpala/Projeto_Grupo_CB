@@ -8,11 +8,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.schemas.auth import LoginRequest, RefreshRequest, TokenResponse
+from app.api.schemas.cliente import ClienteCreate, ClienteResponse
 from app.api.schemas.fornecedor import FornecedorCreate, FornecedorResponse
 from app.api.schemas.vendedor import VendedorCreate, VendedorResponse
+from app.domain.cliente.use_cases.criar_cliente import CriarClienteUseCase
 from app.domain.fornecedor.use_cases.criar_fornecedor import CriarFornecedorUseCase
 from app.domain.vendedor.use_cases.criar_vendedor import CriarVendedorUseCase
 from app.infrastructure.database.repositories.admin_repo import AdminRepository
+from app.infrastructure.database.repositories.cliente_repo import ClienteRepository
 from app.infrastructure.database.repositories.fornecedor_repo import FornecedorRepository
 from app.infrastructure.database.repositories.vendedor_repo import VendedorRepository
 from app.infrastructure.database.session import get_db
@@ -53,6 +56,16 @@ async def _authenticate(email: str, senha: str, db: AsyncSession) -> TokenRespon
     admin_model = await admin_repo.get_model_by_email(email)
     if admin_model and admin_model.ativo and verify_password(senha, admin_model.senha_hash):
         token_data = {"sub": str(admin_model.id), "role": "admin", "email": email}
+        return TokenResponse(
+            access_token=create_access_token(token_data),
+            refresh_token=create_refresh_token(token_data),
+        )
+
+    # Tentar como cliente
+    cliente_repo = ClienteRepository(db)
+    cliente_model = await cliente_repo.get_model_by_email(email)
+    if cliente_model and verify_password(senha, cliente_model.senha_hash):
+        token_data = {"sub": str(cliente_model.id), "role": "cliente", "email": email}
         return TokenResponse(
             access_token=create_access_token(token_data),
             refresh_token=create_refresh_token(token_data),
@@ -130,6 +143,27 @@ async def registro_fornecedor(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
     return FornecedorResponse.model_validate(fornecedor)
+
+
+@router.post("/registro/cliente", response_model=ClienteResponse, status_code=201)
+async def registro_cliente(
+    body: ClienteCreate, db: AsyncSession = Depends(get_db)
+) -> ClienteResponse:
+    """Registrar novo cliente na plataforma."""
+    repo = ClienteRepository(db)
+    use_case = CriarClienteUseCase(repo)
+    try:
+        cliente = await use_case.execute(
+            nome=body.nome,
+            email=body.email,
+            senha=body.senha,
+            cpf=body.cpf,
+            telefone=body.telefone,
+            endereco=body.endereco,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    return ClienteResponse.model_validate(cliente)
 
 
 @router.post("/refresh", response_model=TokenResponse)

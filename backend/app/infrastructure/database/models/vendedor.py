@@ -7,7 +7,7 @@ from __future__ import annotations
 import enum
 import uuid
 
-from sqlalchemy import Enum, ForeignKey, Numeric, String, Text
+from sqlalchemy import Boolean, Enum, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -74,6 +74,7 @@ class LojaModel(UUIDMixin, TimestampMixin, Base):
     descricao: Mapped[str | None] = mapped_column(Text)
     logo_url: Mapped[str | None] = mapped_column(String(512))
     ativa: Mapped[bool] = mapped_column(default=True, nullable=False)
+    verificado: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
     vendedor: Mapped[VendedorModel] = relationship("VendedorModel", back_populates="loja")

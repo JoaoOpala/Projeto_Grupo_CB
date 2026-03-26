@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.api.routers import vendedor, fornecedor, admin, auth, produtos, pedidos
+from app.api.routers import vendedor, fornecedor, admin, auth, produtos, pedidos, cliente, lojas
 
 settings = get_settings()
 
@@ -28,6 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     import app.infrastructure.database.models.pedido  # noqa: F401
     import app.infrastructure.database.models.estoque  # noqa: F401
     import app.infrastructure.database.models.admin  # noqa: F401
+    import app.infrastructure.database.models.cliente  # noqa: F401
 
     if settings.is_sqlite:
         async with engine.begin() as conn:
@@ -87,6 +88,16 @@ app.include_router(
     pedidos.router,
     prefix=f"{settings.API_PREFIX}/pedidos",
     tags=["Pedidos"],
+)
+app.include_router(
+    cliente.router,
+    prefix=f"{settings.API_PREFIX}/cliente",
+    tags=["Cliente"],
+)
+app.include_router(
+    lojas.router,
+    prefix=f"{settings.API_PREFIX}/lojas",
+    tags=["Lojas Públicas"],
 )
 
 
