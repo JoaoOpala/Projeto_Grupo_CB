@@ -5,7 +5,7 @@ echo ============================================
 echo.
 
 echo [1/2] Starting Backend (FastAPI + SQLite)...
-start "Backend - Marketplace CB" cmd /k "cd backend && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend - Marketplace CB" cmd /k "cd backend && py -3.12 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 
 echo [2/2] Starting Frontend (Next.js)...
 start "Frontend - Marketplace CB" cmd /k "cd frontend && npm run dev"

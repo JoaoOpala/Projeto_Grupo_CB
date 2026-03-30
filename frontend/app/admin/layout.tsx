@@ -10,6 +10,8 @@ const adminLinks = [
   { label: "Aprovar Fornecedores", href: "/admin/fornecedores/aprovar" },
   { label: "Produtos", href: "/admin/produtos" },
   { label: "Moderar Produtos", href: "/admin/produtos/moderar" },
+  { label: "Clientes", href: "/admin/clientes" },
+  { label: "Influences / Lojas", href: "/admin/lojas" },
   { label: "Pedidos", href: "/admin/pedidos" },
   { label: "Comissões", href: "/admin/financeiro/comissoes" },
   { label: "Relatórios", href: "/admin/financeiro/relatorios" },

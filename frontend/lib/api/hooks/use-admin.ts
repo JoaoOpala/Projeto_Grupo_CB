@@ -8,7 +8,18 @@ import type { Vendedor } from "@/types/vendedor";
 import type { Fornecedor } from "@/types/fornecedor";
 import type { Produto } from "@/types/produto";
 import type { Pedido } from "@/types/pedido";
+import type { Cliente } from "@/types/cliente";
 import type { PaginatedResponse } from "@/types/api";
+
+interface LojaAdmin {
+  id: string;
+  nome_loja: string;
+  slug: string;
+  descricao?: string;
+  logo_url?: string;
+  ativa: boolean;
+  verificado: boolean;
+}
 
 function useAdminHeaders() {
   const { accessToken } = useAuthStore();
@@ -97,14 +108,18 @@ export function useRejeitarFornecedor() {
   });
 }
 
-export function useAdminProdutos(page = 1, pageSize = 20) {
+export function useAdminProdutos(page = 1, pageSize = 20, status?: string) {
   const headers = useAdminHeaders();
   return useQuery({
-    queryKey: ["admin-produtos", page, pageSize],
+    queryKey: ["admin-produtos", page, pageSize, status],
     queryFn: () =>
       apiClient.get<PaginatedResponse<Produto>>(ENDPOINTS.ADMIN.PRODUTOS, {
         headers,
-        params: { page: String(page), page_size: String(pageSize) },
+        params: {
+          page: String(page),
+          page_size: String(pageSize),
+          ...(status ? { status } : {}),
+        },
       }),
   });
 }
@@ -235,6 +250,106 @@ export function useUpdateStatusVendedor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-vendedores"] });
       queryClient.invalidateQueries({ queryKey: ["admin-vendedor"] });
+    },
+  });
+}
+
+export function useUpdateStatusProduto() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiClient.put(
+        `${ENDPOINTS.ADMIN.PRODUTOS}/${id}/status`,
+        undefined,
+        { headers, params: { novo_status: status } }
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-produtos"] });
+    },
+  });
+}
+
+export function useExcluirProduto() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiClient.delete(`${ENDPOINTS.ADMIN.PRODUTOS}/${id}`, { headers }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-produtos"] });
+    },
+  });
+}
+
+export function useAdminClientes(page = 1, pageSize = 20) {
+  const headers = useAdminHeaders();
+  return useQuery({
+    queryKey: ["admin-clientes", page, pageSize],
+    queryFn: () =>
+      apiClient.get<PaginatedResponse<Cliente>>(ENDPOINTS.ADMIN.CLIENTES, {
+        headers,
+        params: { page: String(page), page_size: String(pageSize) },
+      }),
+  });
+}
+
+export function useUpdateStatusCliente() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiClient.put(
+        `${ENDPOINTS.ADMIN.CLIENTES}/${id}/status`,
+        undefined,
+        { headers, params: { novo_status: status } }
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-clientes"] });
+    },
+  });
+}
+
+export function useAdminLojas(page = 1, pageSize = 20) {
+  const headers = useAdminHeaders();
+  return useQuery({
+    queryKey: ["admin-lojas", page, pageSize],
+    queryFn: () =>
+      apiClient.get<PaginatedResponse<LojaAdmin>>(ENDPOINTS.ADMIN.LOJAS, {
+        headers,
+        params: { page: String(page), page_size: String(pageSize) },
+      }),
+  });
+}
+
+export function useVerificarLoja() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiClient.put(`${ENDPOINTS.ADMIN.LOJAS}/${id}/verificar`, undefined, { headers }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-lojas"] }),
+  });
+}
+
+export function useDesverificarLoja() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiClient.put(`${ENDPOINTS.ADMIN.LOJAS}/${id}/desverificar`, undefined, { headers }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-lojas"] }),
+  });
+}
+
+export function useExcluirCliente() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiClient.delete(`${ENDPOINTS.ADMIN.CLIENTES}/${id}`, { headers }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-clientes"] });
     },
   });
 }

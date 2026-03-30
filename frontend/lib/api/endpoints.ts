@@ -34,9 +34,24 @@ export const ENDPOINTS = {
     FORNECEDORES: "/admin/fornecedores",
     PRODUTOS: "/admin/produtos",
     PEDIDOS: "/admin/pedidos",
+    CLIENTES: "/admin/clientes",
+    LOJAS: "/admin/lojas",
     COMISSOES: "/admin/financeiro/comissoes",
     RELATORIOS: "/admin/financeiro/relatorios",
     CONFIGURACOES: "/admin/configuracoes",
+  },
+
+  // Cliente
+  CLIENTE: {
+    ME: "/cliente/me",
+    REGISTRO: "/auth/registro/cliente",
+  },
+
+  // Lojas públicas
+  LOJAS: {
+    LIST: "/lojas",
+    GET: (slug: string) => `/lojas/${slug}`,
+    PRODUTOS: (slug: string) => `/lojas/${slug}/produtos`,
   },
 
   // Público

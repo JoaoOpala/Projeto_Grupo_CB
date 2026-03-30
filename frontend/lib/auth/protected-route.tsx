@@ -30,6 +30,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
         admin: "/admin",
         vendedor: "/vendedor",
         fornecedor: "/fornecedor",
+        cliente: "/cliente",
       };
       router.push(redirectMap[user.role] || "/");
     }
