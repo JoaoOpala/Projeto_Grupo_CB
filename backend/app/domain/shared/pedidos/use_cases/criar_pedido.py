@@ -88,13 +88,13 @@ class CriarPedidoUseCase:
             )
             await self.movimentacao_repo.create(mov)
 
-            preco_total = produto.preco_venda_sugerido * item_input.quantidade
+            preco_total = produto.preco_venda or produto.preco_base * item_input.quantidade
             itens.append(
                 ItemPedido(
                     id=uuid4(),
                     produto_id=item_input.produto_id,
                     quantidade=item_input.quantidade,
-                    preco_unitario=produto.preco_venda_sugerido,
+                    preco_unitario=produto.preco_venda or produto.preco_base,
                     preco_total=preco_total,
                     produto_nome=produto.nome,
                     produto_sku=produto.sku,

@@ -161,7 +161,7 @@ async def seed_bulk(args):
                 nome=f"{fake.word().capitalize()} {fake.word().capitalize()} {i}",
                 descricao=fake.text(max_nb_chars=200),
                 preco_base=preco_base,
-                preco_venda_sugerido=preco_venda,
+                preco_venda=preco_venda,
                 estoque_disponivel=estoque,
                 status=StatusProduto.ATIVO,
                 peso_kg=round(random.uniform(0.05, 10.0), 3),

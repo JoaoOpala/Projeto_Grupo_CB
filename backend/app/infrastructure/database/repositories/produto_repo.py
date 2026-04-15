@@ -27,15 +27,23 @@ class ProdutoRepository(IProdutoRepository):
             fornecedor_id=model.fornecedor_id,
             categoria_id=model.categoria_id,
             sku=model.sku,
+            ean=model.ean,
             nome=model.nome,
+            marca=model.marca,
+            modelo=model.modelo,
             descricao=model.descricao,
             preco_base=model.preco_base,
-            preco_venda_sugerido=model.preco_venda_sugerido,
+            preco_venda=model.preco_venda,
             estoque_disponivel=model.estoque_disponivel,
             imagens=model.imagens or [],
+            videos=model.videos or [],
             atributos=model.atributos or {},
             status=model.status,
+            comprimento_cm=model.comprimento_cm,
+            largura_cm=model.largura_cm,
+            altura_cm=model.altura_cm,
             peso_kg=model.peso_kg,
+            local_origem=model.local_origem,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
@@ -121,15 +129,23 @@ class ProdutoRepository(IProdutoRepository):
             fornecedor_id=produto.fornecedor_id,
             categoria_id=produto.categoria_id,
             sku=produto.sku,
+            ean=produto.ean,
             nome=produto.nome,
+            marca=produto.marca,
+            modelo=produto.modelo,
             descricao=produto.descricao,
             preco_base=float(produto.preco_base),
-            preco_venda_sugerido=float(produto.preco_venda_sugerido),
+            preco_venda=float(produto.preco_venda) if produto.preco_venda else None,
             estoque_disponivel=produto.estoque_disponivel,
             imagens=produto.imagens,
+            videos=produto.videos,
             atributos=produto.atributos,
             status=produto.status,
+            comprimento_cm=float(produto.comprimento_cm) if produto.comprimento_cm else None,
+            largura_cm=float(produto.largura_cm) if produto.largura_cm else None,
+            altura_cm=float(produto.altura_cm) if produto.altura_cm else None,
             peso_kg=float(produto.peso_kg) if produto.peso_kg else None,
+            local_origem=produto.local_origem,
         )
         self.session.add(model)
         await self.session.flush()
@@ -142,13 +158,20 @@ class ProdutoRepository(IProdutoRepository):
         model = result.scalar_one()
         model.categoria_id = produto.categoria_id
         model.nome = produto.nome
+        model.marca = produto.marca
+        model.modelo = produto.modelo
         model.descricao = produto.descricao
         model.preco_base = float(produto.preco_base)
-        model.preco_venda_sugerido = float(produto.preco_venda_sugerido)
+        model.preco_venda = float(produto.preco_venda) if produto.preco_venda else None
         model.imagens = produto.imagens
+        model.videos = produto.videos
         model.atributos = produto.atributos
         model.status = produto.status
+        model.comprimento_cm = float(produto.comprimento_cm) if produto.comprimento_cm else None
+        model.largura_cm = float(produto.largura_cm) if produto.largura_cm else None
+        model.altura_cm = float(produto.altura_cm) if produto.altura_cm else None
         model.peso_kg = float(produto.peso_kg) if produto.peso_kg else None
+        model.local_origem = produto.local_origem
         await self.session.flush()
         await self.session.refresh(model)
         return self._to_entity(model)
