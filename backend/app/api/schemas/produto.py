@@ -84,6 +84,29 @@ class ProdutoUpdate(BaseSchema):
     local_origem: str | None = None
 
 
+class ProdutoAdminCreate(BaseSchema):
+    """Schema para o Admin criar um produto em nome de um fornecedor."""
+    fornecedor_id: UUID
+    sku: str = Field(..., min_length=3, max_length=100)
+    ean: str = Field(..., min_length=8, max_length=20)
+    nome: str = Field(..., min_length=3, max_length=255)
+    marca: str = Field(..., min_length=1, max_length=255)
+    modelo: str = Field(..., min_length=1, max_length=255)
+    descricao: str | None = None
+    categoria_id: UUID | None = None
+    preco_base: Decimal = Field(..., gt=0)
+    preco_venda: Decimal | None = Field(None, gt=0)
+    estoque_disponivel: int = Field(default=0, ge=0)
+    imagens: list[str] = Field(default_factory=list)
+    videos: list[str] = Field(default_factory=list)
+    comprimento_cm: Decimal = Field(..., gt=0)
+    largura_cm: Decimal = Field(..., gt=0)
+    altura_cm: Decimal = Field(..., gt=0)
+    peso_kg: Decimal = Field(..., gt=0)
+    local_origem: str | None = None
+    atributos: dict[str, Any] = Field(default_factory=dict)
+
+
 class ProdutoAdminUpdate(BaseSchema):
     """Schema exclusivo para o Admin atualizar campos gerenciados pela plataforma."""
     preco_venda: Decimal | None = Field(None, gt=0, description="Preço de venda definido pelo Admin")

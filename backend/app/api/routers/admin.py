@@ -14,10 +14,12 @@ from app.api.deps import require_role
 from app.api.schemas.cliente import ClienteResponse
 from app.api.schemas.fornecedor import FornecedorCreate, FornecedorResponse
 from app.api.schemas.pedido import PedidoAdminUpdateStatus, PedidoPagarFornecedor, PedidoResponse
-from app.api.schemas.produto import ProdutoAdminUpdate, ProdutoResponse
+from app.api.schemas.produto import ProdutoAdminCreate, ProdutoAdminUpdate, ProdutoResponse
 from app.api.schemas.vendedor import VendedorCreate, VendedorResponse
 from app.domain.admin.use_cases.aprovar_fornecedor import AprovarFornecedorUseCase
 from app.domain.admin.use_cases.moderar_produto import ModerarProdutoUseCase
+from app.domain.fornecedor.use_cases.cadastrar_produto import CadastrarProdutoUseCase
+from app.infrastructure.database.repositories.estoque_repo import EstoqueRepository
 from app.domain.shared.pedidos.use_cases.atualizar_status import AtualizarStatusPedidoUseCase
 from app.infrastructure.database.repositories.pedido_repo import PedidoRepository
 from app.domain.fornecedor.use_cases.criar_fornecedor import CriarFornecedorUseCase
@@ -341,6 +343,48 @@ async def atualizar_produto_admin(
         model.local_origem = body.local_origem
     if body.status is not None:
         model.status = body.status
+    await db.commit()
+    await db.refresh(model)
+    return ProdutoResponse.model_validate(model)
+
+
+@router.post("/produtos", response_model=ProdutoResponse, status_code=201)
+async def criar_produto_admin(body: ProdutoAdminCreate, db: AsyncSession = Depends(get_db)):
+    """Admin cria um produto em nome de um fornecedor (status ATIVO diretamente)."""
+    fornecedor_repo = FornecedorRepository(db)
+    produto_repo = ProdutoRepository(db)
+    estoque_repo = EstoqueRepository(db)
+    use_case = CadastrarProdutoUseCase(fornecedor_repo, produto_repo, estoque_repo)
+    try:
+        produto = await use_case.execute(
+            fornecedor_id=body.fornecedor_id,
+            sku=body.sku,
+            ean=body.ean,
+            nome=body.nome,
+            marca=body.marca,
+            modelo=body.modelo,
+            descricao=body.descricao,
+            categoria_id=body.categoria_id,
+            preco_base=body.preco_base,
+            estoque_inicial=body.estoque_disponivel,
+            imagens=body.imagens,
+            videos=body.videos,
+            comprimento_cm=body.comprimento_cm,
+            largura_cm=body.largura_cm,
+            altura_cm=body.altura_cm,
+            peso_kg=body.peso_kg,
+            local_origem=body.local_origem,
+            atributos=body.atributos,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    # Admin criando diretamente → aprovado imediatamente
+    stmt = select(ProdutoModel).where(ProdutoModel.id == produto.id)
+    result = await db.execute(stmt)
+    model = result.scalar_one()
+    model.status = StatusProduto.ATIVO
+    if body.preco_venda:
+        model.preco_venda = body.preco_venda
     await db.commit()
     await db.refresh(model)
     return ProdutoResponse.model_validate(model)

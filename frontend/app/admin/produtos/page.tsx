@@ -40,19 +40,19 @@ export default function ProdutosAdminPage() {
   const [editPrecoVenda, setEditPrecoVenda] = useState("");
   const [editLocalOrigem, setEditLocalOrigem] = useState("");
 
-  const { data, isLoading, error } = useAdminProdutos(page, 20);
+  const statusParam = activeTab === "TODOS" ? undefined : activeTab;
+  const { data, isLoading, error } = useAdminProdutos(page, 20, statusParam);
   const updateStatus = useUpdateStatusProduto();
   const excluir = useExcluirProduto();
   const updateAdmin = useAdminUpdateProduto();
 
   const filteredItems = (data?.items ?? []).filter((p) => {
-    const matchStatus = activeTab === "TODOS" ? true : p.status === activeTab;
-    const matchSearch =
-      search === "" ||
+    if (search === "") return true;
+    return (
       p.nome.toLowerCase().includes(search.toLowerCase()) ||
       p.sku.toLowerCase().includes(search.toLowerCase()) ||
-      (p.ean || "").toLowerCase().includes(search.toLowerCase());
-    return matchStatus && matchSearch;
+      (p.ean || "").toLowerCase().includes(search.toLowerCase())
+    );
   });
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -94,12 +94,20 @@ export default function ProdutosAdminPage() {
           <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Produtos</h1>
           <p className="mt-2 text-muted-foreground">Gerencie todos os produtos da plataforma</p>
         </div>
-        <Link
-          href="/admin/produtos/moderar"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-        >
-          Moderar Pendentes
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/produtos/moderar"
+            className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+          >
+            Moderar Pendentes
+          </Link>
+          <Link
+            href="/admin/produtos/novo"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          >
+            + Adicionar Produto
+          </Link>
+        </div>
       </div>
 
       {/* Search */}

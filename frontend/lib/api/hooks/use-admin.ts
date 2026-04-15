@@ -354,6 +354,35 @@ export function useExcluirCliente() {
   });
 }
 
+export function useAdminCriarProduto() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      fornecedor_id: string;
+      sku: string;
+      ean: string;
+      nome: string;
+      marca: string;
+      modelo: string;
+      descricao?: string;
+      preco_base: number;
+      preco_venda?: number;
+      estoque_disponivel?: number;
+      imagens?: string[];
+      videos?: string[];
+      comprimento_cm: number;
+      largura_cm: number;
+      altura_cm: number;
+      peso_kg: number;
+      local_origem?: string;
+    }) => apiClient.post<Produto>(ENDPOINTS.ADMIN.PRODUTOS, data, { headers }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-produtos"] });
+    },
+  });
+}
+
 export function useAdminUpdateProduto() {
   const headers = useAdminHeaders();
   const queryClient = useQueryClient();
