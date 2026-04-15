@@ -19,13 +19,13 @@ settings = get_settings()
 # SQLite não suporta pool_size/max_overflow
 if settings.is_sqlite:
     engine = create_async_engine(
-        settings.DATABASE_URL,
+        settings.async_database_url,
         echo=settings.DB_ECHO,
         connect_args={"check_same_thread": False},
     )
 else:
     engine = create_async_engine(
-        settings.DATABASE_URL,
+        settings.async_database_url,
         echo=settings.DB_ECHO,
         pool_size=settings.DB_POOL_SIZE,
         max_overflow=settings.DB_MAX_OVERFLOW,
