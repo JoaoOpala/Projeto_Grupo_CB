@@ -8,18 +8,22 @@ import type { Pedido } from "@/types/pedido";
 const statusColors: Record<string, string> = {
   AGUARDANDO_PAGAMENTO: "bg-yellow-100 text-yellow-800",
   PAGO: "bg-blue-100 text-blue-800",
-  PREPARANDO: "bg-indigo-100 text-indigo-800",
-  ENVIADO: "bg-purple-100 text-purple-800",
+  NOTA_FISCAL_EMITIDA: "bg-indigo-100 text-indigo-800",
+  ETIQUETA_GERADA: "bg-indigo-100 text-indigo-800",
+  DESPACHADO: "bg-purple-100 text-purple-800",
+  EM_ENTREGA: "bg-purple-100 text-purple-800",
   ENTREGUE: "bg-green-100 text-green-800",
+  EM_DEVOLUCAO: "bg-gray-100 text-gray-800",
   CANCELADO: "bg-red-100 text-red-800",
-  DEVOLVIDO: "bg-gray-100 text-gray-800",
 };
 
 const statusSteps = [
   "AGUARDANDO_PAGAMENTO",
   "PAGO",
-  "PREPARANDO",
-  "ENVIADO",
+  "NOTA_FISCAL_EMITIDA",
+  "ETIQUETA_GERADA",
+  "DESPACHADO",
+  "EM_ENTREGA",
   "ENTREGUE",
 ];
 
@@ -93,7 +97,7 @@ export default function RastreioPage() {
       {pedido && (
         <div className="mt-8 space-y-6">
           {/* Status progress */}
-          {pedido.status !== "CANCELADO" && pedido.status !== "DEVOLVIDO" && (
+          {pedido.status !== "CANCELADO" && pedido.status !== "EM_DEVOLUCAO" && (
             <div className="rounded-lg border p-6">
               <h2 className="text-lg font-semibold">Progresso</h2>
               <div className="mt-4 flex items-center justify-between">

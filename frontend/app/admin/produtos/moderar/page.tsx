@@ -72,8 +72,8 @@ export default function ModerarProdutosPage() {
                     <span className="font-medium">{formatCurrency(p.preco_base)}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Preço Sugerido: </span>
-                    <span className="font-medium">{formatCurrency(p.preco_venda_sugerido)}</span>
+                    <span className="text-muted-foreground">Preço de Venda: </span>
+                    <span className="font-medium">{formatCurrency(p.preco_venda ?? p.preco_base)}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Estoque: </span>

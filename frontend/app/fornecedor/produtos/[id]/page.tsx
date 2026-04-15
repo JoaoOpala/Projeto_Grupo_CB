@@ -47,8 +47,8 @@ export default function DetalhesProdutoFornecedorPage() {
             <span className="font-mono">{produto.sku}</span>
             <span className="text-muted-foreground">Preço Base:</span>
             <span>R$ {Number(produto.preco_base).toFixed(2)}</span>
-            <span className="text-muted-foreground">Preço Sugerido:</span>
-            <span>R$ {Number(produto.preco_venda_sugerido).toFixed(2)}</span>
+            <span className="text-muted-foreground">Preço de Venda:</span>
+            <span>R$ {Number(produto.preco_venda ?? produto.preco_base).toFixed(2)}</span>
             <span className="text-muted-foreground">Estoque:</span>
             <span>{produto.estoque_disponivel}</span>
             {produto.peso_kg && (

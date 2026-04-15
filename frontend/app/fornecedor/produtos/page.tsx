@@ -89,7 +89,7 @@ export default function ProdutosFornecedorPage() {
                     R$ {Number(p.preco_base).toFixed(2)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    R$ {Number(p.preco_venda_sugerido).toFixed(2)}
+                    R$ {Number(p.preco_venda ?? p.preco_base).toFixed(2)}
                   </td>
                   <td className="px-4 py-3 text-right">{p.estoque_disponivel}</td>
                   <td className="px-4 py-3">

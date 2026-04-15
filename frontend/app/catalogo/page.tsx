@@ -94,7 +94,7 @@ export default function CatalogoPage() {
                   )}
                   <div className="mt-4 flex items-center justify-between">
                     <span className="text-xl font-bold">
-                      R$ {Number(p.preco_venda_sugerido).toFixed(2)}
+                      R$ {Number(p.preco_venda ?? p.preco_base).toFixed(2)}
                     </span>
                     <span
                       className={`text-xs ${

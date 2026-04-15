@@ -42,7 +42,7 @@ export default function ProdutoDetalhePage() {
   if (isLoading) return <div className="mx-auto max-w-4xl px-6 py-8 text-muted-foreground">Carregando...</div>;
   if (error || !produto) return <div className="mx-auto max-w-4xl px-6 py-8 text-red-500">Produto não encontrado.</div>;
 
-  const precoExibido = lojaAtual ? lojaAtual.preco_venda : Number(produto.preco_venda_sugerido);
+  const precoExibido = lojaAtual ? lojaAtual.preco_venda : Number(produto.preco_venda ?? produto.preco_base);
 
   const handleAddToCart = () => {
     if (!lojaAtual) return;
