@@ -23,6 +23,7 @@ import app.infrastructure.database.models.produto  # noqa: F401
 import app.infrastructure.database.models.pedido  # noqa: F401
 import app.infrastructure.database.models.estoque  # noqa: F401
 import app.infrastructure.database.models.admin  # noqa: F401
+import app.infrastructure.database.models.cliente  # noqa: F401
 
 from app.infrastructure.database.models.admin import AdminModel, RoleAdminEnum
 from app.infrastructure.database.models.vendedor import (
@@ -158,7 +159,7 @@ async def seed():
                 nome=p["nome"],
                 descricao=p.get("descricao"),
                 preco_base=p["preco_base"],
-                preco_venda_sugerido=p["preco_venda_sugerido"],
+                preco_venda=p.get("preco_venda") or p.get("preco_venda_sugerido"),
                 estoque_disponivel=p["estoque_disponivel"],
                 status=StatusProduto.ATIVO,
                 peso_kg=p.get("peso_kg"),
