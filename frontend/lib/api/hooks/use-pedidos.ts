@@ -29,3 +29,19 @@ export function usePedidosFornecedor(token: string | null, page = 1) {
     enabled: !!token,
   });
 }
+
+export function useComissoesVendedor(token: string | null) {
+  return useQuery({
+    queryKey: ["vendedor-comissoes"],
+    queryFn: () =>
+      apiClient.get<{
+        total_comissao_gerada: number;
+        total_comissao_liberada: number;
+        total_pedidos: number;
+        observacao: string;
+      }>(ENDPOINTS.VENDEDOR.COMISSOES, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    enabled: !!token,
+  });
+}

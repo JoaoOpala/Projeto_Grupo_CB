@@ -353,3 +353,51 @@ export function useExcluirCliente() {
     },
   });
 }
+
+export function useAdminUpdateProduto() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { preco_venda?: number; local_origem?: string; status?: string };
+    }) =>
+      apiClient.put<Produto>(`${ENDPOINTS.ADMIN.PRODUTOS}/${id}/admin`, data, { headers }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-produtos"] });
+    },
+  });
+}
+
+export function useAdminAtualizarStatusPedido() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { status: string; codigo_rastreio?: string; observacoes?: string };
+    }) =>
+      apiClient.put(`${ENDPOINTS.ADMIN.PEDIDOS}/${id}/status`, data, { headers }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-pedidos"] });
+    },
+  });
+}
+
+export function useAdminPagarFornecedor() {
+  const headers = useAdminHeaders();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, valor_pago }: { id: string; valor_pago: number }) =>
+      apiClient.put(`${ENDPOINTS.ADMIN.PEDIDOS}/${id}/pagar-fornecedor`, { valor_pago }, { headers }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-pedidos"] });
+    },
+  });
+}

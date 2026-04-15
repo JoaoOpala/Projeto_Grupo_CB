@@ -16,11 +16,13 @@ from app.infrastructure.database.base import Base, TimestampMixin, UUIDMixin
 class StatusPedido(str, enum.Enum):
     AGUARDANDO_PAGAMENTO = "AGUARDANDO_PAGAMENTO"
     PAGO = "PAGO"
-    PREPARANDO = "PREPARANDO"
-    ENVIADO = "ENVIADO"
+    NOTA_FISCAL_EMITIDA = "NOTA_FISCAL_EMITIDA"
+    ETIQUETA_GERADA = "ETIQUETA_GERADA"
+    DESPACHADO = "DESPACHADO"
+    EM_ENTREGA = "EM_ENTREGA"
     ENTREGUE = "ENTREGUE"
+    EM_DEVOLUCAO = "EM_DEVOLUCAO"
     CANCELADO = "CANCELADO"
-    DEVOLVIDO = "DEVOLVIDO"
 
 
 class PedidoModel(UUIDMixin, TimestampMixin, Base):
@@ -53,6 +55,10 @@ class PedidoModel(UUIDMixin, TimestampMixin, Base):
     # Comissões
     valor_comissao_plataforma: Mapped[float] = mapped_column(Numeric(12, 2), default=0, nullable=False)
     valor_comissao_vendedor: Mapped[float] = mapped_column(Numeric(12, 2), default=0, nullable=False)
+    # Valor calculado com base no preco_base dos itens (receita do fornecedor)
+    valor_base_fornecedor: Mapped[float | None] = mapped_column(Numeric(12, 2))
+    # Valor já pago ao fornecedor
+    valor_pago_fornecedor: Mapped[float] = mapped_column(Numeric(12, 2), default=0, nullable=False)
 
     status: Mapped[StatusPedido] = mapped_column(
         Enum(StatusPedido, name="status_pedido_enum", create_constraint=True, native_enum=False),
@@ -61,6 +67,8 @@ class PedidoModel(UUIDMixin, TimestampMixin, Base):
     )
     codigo_rastreio: Mapped[str | None] = mapped_column(String(100))
     observacoes: Mapped[str | None] = mapped_column(Text)
+    # Histórico de mudanças de status [{status, data_hora, observacoes}]
+    historico_status: Mapped[dict | None] = mapped_column(JSON, default=list)
 
     # Relationships
     itens: Mapped[list[ItemPedidoModel]] = relationship(

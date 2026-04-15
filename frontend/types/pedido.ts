@@ -3,11 +3,19 @@ import type { Endereco } from "./api";
 export type StatusPedido =
   | "AGUARDANDO_PAGAMENTO"
   | "PAGO"
-  | "PREPARANDO"
-  | "ENVIADO"
+  | "NOTA_FISCAL_EMITIDA"
+  | "ETIQUETA_GERADA"
+  | "DESPACHADO"
+  | "EM_ENTREGA"
   | "ENTREGUE"
-  | "CANCELADO"
-  | "DEVOLVIDO";
+  | "EM_DEVOLUCAO"
+  | "CANCELADO";
+
+export interface HistoricoStatus {
+  status: StatusPedido;
+  data_hora: string;
+  observacoes?: string;
+}
 
 export interface ItemPedido {
   id: string;
@@ -34,9 +42,14 @@ export interface Pedido {
   valor_total: number;
   valor_comissao_plataforma: number;
   valor_comissao_vendedor: number;
+  /** Valor calculado com base no preço base do fornecedor */
+  valor_base_fornecedor?: number;
+  /** Valor já pago ao fornecedor */
+  valor_pago_fornecedor: number;
   status: StatusPedido;
   codigo_rastreio?: string;
   observacoes?: string;
+  historico_status?: HistoricoStatus[];
   itens: ItemPedido[];
   created_at: string;
   updated_at: string;

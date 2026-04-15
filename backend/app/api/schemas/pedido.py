@@ -3,6 +3,7 @@ Marketplace CB - Schemas Pydantic: Pedido e ItemPedido
 """
 
 from decimal import Decimal
+from typing import Any
 from uuid import UUID
 
 from pydantic import EmailStr, Field
@@ -52,6 +53,17 @@ class PedidoUpdateStatus(BaseSchema):
     observacoes: str | None = None
 
 
+class PedidoAdminUpdateStatus(BaseSchema):
+    """Schema para o Admin atualizar status (sem restrições de transição)."""
+    status: StatusPedido
+    codigo_rastreio: str | None = None
+    observacoes: str | None = None
+
+
+class PedidoPagarFornecedor(BaseSchema):
+    valor_pago: Decimal = Field(..., gt=0)
+
+
 class PedidoResponse(TimestampSchema):
     id: UUID
     numero_pedido: str
@@ -67,9 +79,12 @@ class PedidoResponse(TimestampSchema):
     valor_total: Decimal
     valor_comissao_plataforma: Decimal
     valor_comissao_vendedor: Decimal
+    valor_base_fornecedor: Decimal | None
+    valor_pago_fornecedor: Decimal
     status: StatusPedido
     codigo_rastreio: str | None
     observacoes: str | None
+    historico_status: list[dict[str, Any]] | None
     itens: list[ItemPedidoResponse]
 
 

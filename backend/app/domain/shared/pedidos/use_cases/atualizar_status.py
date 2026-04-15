@@ -3,6 +3,8 @@ Marketplace CB - Use Case: Atualizar Status do Pedido
 Aplica máquina de estados com transições permitidas.
 """
 
+from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from app.domain.shared.pedidos.entities import StatusPedido
@@ -19,17 +21,30 @@ class AtualizarStatusPedidoUseCase:
         novo_status: StatusPedido,
         codigo_rastreio: str | None = None,
         observacoes: str | None = None,
+        admin_override: bool = False,
     ) -> dict:
         pedido = await self.pedido_repo.get_by_id(pedido_id)
         if not pedido:
             raise ValueError("Pedido não encontrado")
 
-        if not pedido.pode_transicionar_para(novo_status):
+        if not admin_override and not pedido.pode_transicionar_para(novo_status):
             raise ValueError(
                 f"Transição inválida: {pedido.status.value} → {novo_status.value}"
             )
 
+        # Registrar entrada no histórico
+        entrada: dict[str, Any] = {
+            "status": novo_status.value,
+            "data_hora": datetime.now().isoformat(),
+        }
+        if observacoes:
+            entrada["observacoes"] = observacoes
+
+        historico = pedido.historico_status or []
+        historico.append(entrada)
+        pedido.historico_status = historico
         pedido.status = novo_status
+
         if codigo_rastreio:
             pedido.codigo_rastreio = codigo_rastreio
         if observacoes:
@@ -40,4 +55,5 @@ class AtualizarStatusPedidoUseCase:
             "pedido_id": str(updated.id),
             "numero_pedido": updated.numero_pedido,
             "status": updated.status.value,
+            "data_hora": entrada["data_hora"],
         }

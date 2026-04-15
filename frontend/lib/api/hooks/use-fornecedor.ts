@@ -39,10 +39,17 @@ export function useUpdateProdutoFornecedor(token: string | null) {
       id: string;
       data: {
         nome?: string;
+        marca?: string;
+        modelo?: string;
         descricao?: string;
         preco_base?: number;
-        preco_venda_sugerido?: number;
+        imagens?: string[];
+        videos?: string[];
+        comprimento_cm?: number;
+        largura_cm?: number;
+        altura_cm?: number;
         peso_kg?: number;
+        local_origem?: string;
       };
     }) =>
       apiClient.put<Produto>(`${ENDPOINTS.FORNECEDOR.PRODUTOS}/${id}`, data, {

@@ -79,19 +79,29 @@ class ProdutoModel(UUIDMixin, TimestampMixin, Base):
         index=True,
     )
     sku: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
+    ean: Mapped[str | None] = mapped_column(String(20), unique=True, index=True)
     nome: Mapped[str] = mapped_column(String(255), nullable=False)
+    marca: Mapped[str | None] = mapped_column(String(255))
+    modelo: Mapped[str | None] = mapped_column(String(255))
     descricao: Mapped[str | None] = mapped_column(Text)
     preco_base: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
-    preco_venda_sugerido: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
+    preco_venda: Mapped[float | None] = mapped_column(Numeric(12, 2))
     estoque_disponivel: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     imagens: Mapped[dict | None] = mapped_column(JsonType, default=list)
+    videos: Mapped[dict | None] = mapped_column(JsonType, default=list)
     atributos: Mapped[dict | None] = mapped_column(JsonType, default=dict)
     status: Mapped[StatusProduto] = mapped_column(
         Enum(StatusProduto, name="status_produto_enum", create_constraint=True, native_enum=False),
         default=StatusProduto.RASCUNHO,
         nullable=False,
     )
+    # Medidas da embalagem
+    comprimento_cm: Mapped[float | None] = mapped_column(Numeric(8, 2))
+    largura_cm: Mapped[float | None] = mapped_column(Numeric(8, 2))
+    altura_cm: Mapped[float | None] = mapped_column(Numeric(8, 2))
     peso_kg: Mapped[float | None] = mapped_column(Numeric(8, 3))
+    # Campo definido pelo admin
+    local_origem: Mapped[str | None] = mapped_column(String(500))
 
     # Relationships
     fornecedor: Mapped[FornecedorModel] = relationship(

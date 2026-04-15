@@ -30,13 +30,20 @@ class CadastrarProdutoUseCase:
         sku: str,
         nome: str,
         preco_base: Decimal,
-        preco_venda_sugerido: Decimal,
         estoque_inicial: int = 0,
+        ean: str | None = None,
+        marca: str | None = None,
+        modelo: str | None = None,
         categoria_id: UUID | None = None,
         descricao: str | None = None,
         imagens: list[str] | None = None,
+        videos: list[str] | None = None,
         atributos: dict[str, Any] | None = None,
+        comprimento_cm: Decimal | None = None,
+        largura_cm: Decimal | None = None,
+        altura_cm: Decimal | None = None,
         peso_kg: Decimal | None = None,
+        local_origem: str | None = None,
     ) -> Produto:
         fornecedor = await self.fornecedor_repo.get_by_id(fornecedor_id)
         if not fornecedor:
@@ -48,20 +55,30 @@ class CadastrarProdutoUseCase:
         if existing_sku:
             raise ValueError(f"SKU '{sku}' já existe")
 
+        if imagens and len(imagens) > 15:
+            raise ValueError("Máximo de 15 fotos permitidas")
+
         produto = Produto(
             id=uuid4(),
             fornecedor_id=fornecedor_id,
             categoria_id=categoria_id,
             sku=sku,
+            ean=ean,
             nome=nome,
+            marca=marca,
+            modelo=modelo,
             descricao=descricao,
             preco_base=preco_base,
-            preco_venda_sugerido=preco_venda_sugerido,
             estoque_disponivel=estoque_inicial,
             imagens=imagens or [],
+            videos=videos or [],
             atributos=atributos or {},
             status=StatusProduto.MODERACAO,
+            comprimento_cm=comprimento_cm,
+            largura_cm=largura_cm,
+            altura_cm=altura_cm,
             peso_kg=peso_kg,
+            local_origem=local_origem,
         )
 
         created = await self.produto_repo.create(produto)

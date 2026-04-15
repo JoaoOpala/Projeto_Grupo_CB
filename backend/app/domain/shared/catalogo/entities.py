@@ -34,15 +34,23 @@ class Produto:
     fornecedor_id: UUID = field(default_factory=uuid4)
     categoria_id: UUID | None = None
     sku: str = ""
+    ean: str | None = None
     nome: str = ""
+    marca: str | None = None
+    modelo: str | None = None
     descricao: str | None = None
     preco_base: Decimal = Decimal("0.00")
-    preco_venda_sugerido: Decimal = Decimal("0.00")
+    preco_venda: Decimal | None = None
     estoque_disponivel: int = 0
     imagens: list[str] = field(default_factory=list)
+    videos: list[str] = field(default_factory=list)
     atributos: dict[str, Any] = field(default_factory=dict)
     status: StatusProduto = StatusProduto.RASCUNHO
+    comprimento_cm: Decimal | None = None
+    largura_cm: Decimal | None = None
+    altura_cm: Decimal | None = None
     peso_kg: Decimal | None = None
+    local_origem: str | None = None
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 

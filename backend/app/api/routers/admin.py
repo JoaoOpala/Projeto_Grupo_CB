@@ -13,11 +13,13 @@ from sqlalchemy import select
 from app.api.deps import require_role
 from app.api.schemas.cliente import ClienteResponse
 from app.api.schemas.fornecedor import FornecedorCreate, FornecedorResponse
-from app.api.schemas.pedido import PedidoResponse
-from app.api.schemas.produto import ProdutoResponse
+from app.api.schemas.pedido import PedidoAdminUpdateStatus, PedidoPagarFornecedor, PedidoResponse
+from app.api.schemas.produto import ProdutoAdminUpdate, ProdutoResponse
 from app.api.schemas.vendedor import VendedorCreate, VendedorResponse
 from app.domain.admin.use_cases.aprovar_fornecedor import AprovarFornecedorUseCase
 from app.domain.admin.use_cases.moderar_produto import ModerarProdutoUseCase
+from app.domain.shared.pedidos.use_cases.atualizar_status import AtualizarStatusPedidoUseCase
+from app.infrastructure.database.repositories.pedido_repo import PedidoRepository
 from app.domain.fornecedor.use_cases.criar_fornecedor import CriarFornecedorUseCase
 from app.domain.vendedor.use_cases.criar_vendedor import CriarVendedorUseCase
 from app.infrastructure.database.models.cliente import ClienteModel, StatusCliente
@@ -321,6 +323,29 @@ async def atualizar_status_produto(
     return {"produto_id": str(produto_id), "status": novo_status}
 
 
+@router.put("/produtos/{produto_id}/admin", response_model=ProdutoResponse)
+async def atualizar_produto_admin(
+    produto_id: UUID,
+    body: ProdutoAdminUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin define preço de venda, local de origem e status de um produto."""
+    stmt = select(ProdutoModel).where(ProdutoModel.id == produto_id)
+    result = await db.execute(stmt)
+    model = result.scalar_one_or_none()
+    if not model:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    if body.preco_venda is not None:
+        model.preco_venda = float(body.preco_venda)
+    if body.local_origem is not None:
+        model.local_origem = body.local_origem
+    if body.status is not None:
+        model.status = body.status
+    await db.commit()
+    await db.refresh(model)
+    return ProdutoResponse.model_validate(model)
+
+
 @router.delete("/produtos/{produto_id}", status_code=204)
 async def excluir_produto(produto_id: UUID, db: AsyncSession = Depends(get_db)):
     """Admin exclui um produto da plataforma."""
@@ -474,4 +499,48 @@ async def listar_pedidos_admin(
         "page": page,
         "page_size": page_size,
         "total_pages": (total + page_size - 1) // page_size,
+    }
+
+
+@router.put("/pedidos/{pedido_id}/status")
+async def atualizar_status_pedido_admin(
+    pedido_id: UUID,
+    body: PedidoAdminUpdateStatus,
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin atualiza o status de qualquer pedido, com registro de data/hora."""
+    repo = PedidoRepository(db)
+    use_case = AtualizarStatusPedidoUseCase(repo)
+    try:
+        result = await use_case.execute(
+            pedido_id=pedido_id,
+            novo_status=body.status,
+            codigo_rastreio=body.codigo_rastreio,
+            observacoes=body.observacoes,
+            admin_override=True,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return result
+
+
+@router.put("/pedidos/{pedido_id}/pagar-fornecedor")
+async def registrar_pagamento_fornecedor(
+    pedido_id: UUID,
+    body: PedidoPagarFornecedor,
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin registra pagamento ao fornecedor para um pedido."""
+    repo = PedidoRepository(db)
+    pedido = await repo.get_by_id(pedido_id)
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+    pedido.valor_pago_fornecedor = float(
+        (pedido.valor_pago_fornecedor or 0) + float(body.valor_pago)
+    )
+    updated = await repo.update(pedido)
+    return {
+        "pedido_id": str(updated.id),
+        "numero_pedido": updated.numero_pedido,
+        "valor_pago_fornecedor": float(updated.valor_pago_fornecedor),
     }

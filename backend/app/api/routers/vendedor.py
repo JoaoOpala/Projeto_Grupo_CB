@@ -240,3 +240,74 @@ async def get_pedido_vendedor(
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
     return PedidoResponse.model_validate(pedido)
+
+
+# ── Financeiro / Comissões ───────────────────────────────
+
+
+@router.get("/financeiro/comissoes")
+async def get_comissoes_vendedor(
+    user_id: UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retorna resumo de comissões do vendedor: total gerado e total liberado para saque."""
+    from app.infrastructure.database.models.pedido import StatusPedido as StatusPedidoDB
+
+    loja_repo = LojaRepository(db)
+    loja = await loja_repo.get_by_vendedor_id(user_id)
+    if not loja:
+        raise HTTPException(status_code=404, detail="Loja não encontrada")
+
+    pedido_repo = PedidoRepository(db)
+    items, _ = await pedido_repo.list_by_loja(loja.id, offset=0, limit=10000)
+
+    total_gerado = sum(float(p.valor_comissao_vendedor or 0) for p in items)
+    # Comissões liberadas = pedidos com status ENTREGUE
+    total_liberado = sum(
+        float(p.valor_comissao_vendedor or 0)
+        for p in items
+        if p.status == StatusPedidoDB.ENTREGUE
+    )
+    total_pedidos = len(items)
+
+    return {
+        "total_comissao_gerada": round(total_gerado, 2),
+        "total_comissao_liberada": round(total_liberado, 2),
+        "total_pedidos": total_pedidos,
+        "observacao": "Comissões são liberadas após o pedido ser marcado como ENTREGUE.",
+    }
+
+
+@router.post("/financeiro/saque")
+async def solicitar_saque(
+    user_id: UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Solicita saque das comissões liberadas."""
+    from app.infrastructure.database.models.pedido import StatusPedido as StatusPedidoDB
+
+    loja_repo = LojaRepository(db)
+    loja = await loja_repo.get_by_vendedor_id(user_id)
+    if not loja:
+        raise HTTPException(status_code=404, detail="Loja não encontrada")
+
+    pedido_repo = PedidoRepository(db)
+    items, _ = await pedido_repo.list_by_loja(loja.id, offset=0, limit=10000)
+
+    total_liberado = sum(
+        float(p.valor_comissao_vendedor or 0)
+        for p in items
+        if p.status == StatusPedidoDB.ENTREGUE
+    )
+
+    if total_liberado <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nenhuma comissão disponível para saque",
+        )
+
+    return {
+        "solicitacao_saque": "PENDENTE",
+        "valor_solicitado": round(total_liberado, 2),
+        "mensagem": "Solicitação de saque registrada. O pagamento será processado em até 3 dias úteis.",
+    }

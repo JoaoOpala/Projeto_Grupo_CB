@@ -10,15 +10,24 @@ export interface Produto {
   fornecedor_id: string;
   categoria_id?: string;
   sku: string;
+  ean?: string;
   nome: string;
+  marca?: string;
+  modelo?: string;
   descricao?: string;
   preco_base: number;
-  preco_venda_sugerido: number;
+  /** Preço de venda definido pelo Admin */
+  preco_venda?: number;
   estoque_disponivel: number;
   imagens: string[];
+  videos?: string[];
   atributos: Record<string, unknown>;
   status: StatusProduto;
+  comprimento_cm?: number;
+  largura_cm?: number;
+  altura_cm?: number;
   peso_kg?: number;
+  local_origem?: string;
   created_at: string;
   updated_at: string;
 }

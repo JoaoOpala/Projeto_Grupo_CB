@@ -6,27 +6,32 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
+from typing import Any
 from uuid import UUID, uuid4
 
 
 class StatusPedido(str, Enum):
     AGUARDANDO_PAGAMENTO = "AGUARDANDO_PAGAMENTO"
     PAGO = "PAGO"
-    PREPARANDO = "PREPARANDO"
-    ENVIADO = "ENVIADO"
+    NOTA_FISCAL_EMITIDA = "NOTA_FISCAL_EMITIDA"
+    ETIQUETA_GERADA = "ETIQUETA_GERADA"
+    DESPACHADO = "DESPACHADO"
+    EM_ENTREGA = "EM_ENTREGA"
     ENTREGUE = "ENTREGUE"
+    EM_DEVOLUCAO = "EM_DEVOLUCAO"
     CANCELADO = "CANCELADO"
-    DEVOLVIDO = "DEVOLVIDO"
 
 
 TRANSICOES_PERMITIDAS: dict[StatusPedido, list[StatusPedido]] = {
     StatusPedido.AGUARDANDO_PAGAMENTO: [StatusPedido.PAGO, StatusPedido.CANCELADO],
-    StatusPedido.PAGO: [StatusPedido.PREPARANDO, StatusPedido.CANCELADO],
-    StatusPedido.PREPARANDO: [StatusPedido.ENVIADO, StatusPedido.CANCELADO],
-    StatusPedido.ENVIADO: [StatusPedido.ENTREGUE],
-    StatusPedido.ENTREGUE: [StatusPedido.DEVOLVIDO],
+    StatusPedido.PAGO: [StatusPedido.NOTA_FISCAL_EMITIDA, StatusPedido.CANCELADO],
+    StatusPedido.NOTA_FISCAL_EMITIDA: [StatusPedido.ETIQUETA_GERADA, StatusPedido.CANCELADO],
+    StatusPedido.ETIQUETA_GERADA: [StatusPedido.DESPACHADO, StatusPedido.CANCELADO],
+    StatusPedido.DESPACHADO: [StatusPedido.EM_ENTREGA],
+    StatusPedido.EM_ENTREGA: [StatusPedido.ENTREGUE, StatusPedido.EM_DEVOLUCAO],
+    StatusPedido.ENTREGUE: [StatusPedido.EM_DEVOLUCAO],
+    StatusPedido.EM_DEVOLUCAO: [],
     StatusPedido.CANCELADO: [],
-    StatusPedido.DEVOLVIDO: [],
 }
 
 
@@ -58,9 +63,12 @@ class Pedido:
     valor_total: Decimal = Decimal("0.00")
     valor_comissao_plataforma: Decimal = Decimal("0.00")
     valor_comissao_vendedor: Decimal = Decimal("0.00")
+    valor_base_fornecedor: Decimal | None = None
+    valor_pago_fornecedor: Decimal = Decimal("0.00")
     status: StatusPedido = StatusPedido.AGUARDANDO_PAGAMENTO
     codigo_rastreio: str | None = None
     observacoes: str | None = None
+    historico_status: list[dict[str, Any]] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
@@ -73,3 +81,15 @@ class Pedido:
         )
         self.valor_total = self.valor_produtos + self.valor_frete - self.valor_desconto
         return self.valor_total
+
+    def registrar_mudanca_status(self, novo_status: StatusPedido, observacoes: str | None = None) -> None:
+        entrada: dict[str, Any] = {
+            "status": novo_status.value,
+            "data_hora": datetime.now().isoformat(),
+        }
+        if observacoes:
+            entrada["observacoes"] = observacoes
+        if self.historico_status is None:
+            self.historico_status = []
+        self.historico_status.append(entrada)
+        self.status = novo_status

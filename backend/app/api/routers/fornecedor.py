@@ -139,13 +139,20 @@ async def cadastrar_produto(
             sku=body.sku,
             nome=body.nome,
             preco_base=body.preco_base,
-            preco_venda_sugerido=body.preco_venda_sugerido,
             estoque_inicial=body.estoque_disponivel,
+            ean=body.ean,
+            marca=body.marca,
+            modelo=body.modelo,
             categoria_id=body.categoria_id,
             descricao=body.descricao,
             imagens=body.imagens,
+            videos=body.videos,
             atributos=body.atributos,
+            comprimento_cm=body.comprimento_cm,
+            largura_cm=body.largura_cm,
+            altura_cm=body.altura_cm,
             peso_kg=body.peso_kg,
+            local_origem=body.local_origem,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -180,20 +187,34 @@ async def update_produto(
 
     if body.nome is not None:
         produto.nome = body.nome
+    if body.marca is not None:
+        produto.marca = body.marca
+    if body.modelo is not None:
+        produto.modelo = body.modelo
     if body.descricao is not None:
         produto.descricao = body.descricao
     if body.preco_base is not None:
         produto.preco_base = body.preco_base
-    if body.preco_venda_sugerido is not None:
-        produto.preco_venda_sugerido = body.preco_venda_sugerido
     if body.imagens is not None:
+        if len(body.imagens) > 15:
+            raise HTTPException(status_code=400, detail="Máximo de 15 fotos permitidas")
         produto.imagens = body.imagens
+    if body.videos is not None:
+        produto.videos = body.videos
     if body.atributos is not None:
         produto.atributos = body.atributos
     if body.categoria_id is not None:
         produto.categoria_id = body.categoria_id
+    if body.comprimento_cm is not None:
+        produto.comprimento_cm = body.comprimento_cm
+    if body.largura_cm is not None:
+        produto.largura_cm = body.largura_cm
+    if body.altura_cm is not None:
+        produto.altura_cm = body.altura_cm
     if body.peso_kg is not None:
         produto.peso_kg = body.peso_kg
+    if body.local_origem is not None:
+        produto.local_origem = body.local_origem
 
     updated = await repo.update(produto)
     return ProdutoResponse.model_validate(updated)
